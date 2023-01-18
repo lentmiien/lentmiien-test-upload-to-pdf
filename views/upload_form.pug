@@ -1,0 +1,10 @@
+doctype html
+html(lang="en")
+  head
+    title PDF generator
+  body
+    h1 PDF generator
+    form(action="/generate", method="post", encType="multipart/form-data") 
+      input#image1_file(type="file", name="image1_file")
+      input#image2_file(type="file", name="image2_file")
+      input(type="submit", value="PDF")
