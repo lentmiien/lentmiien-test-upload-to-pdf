@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const app = express();
 const { PDFDocument } = require('pdf-lib');
+const { Client } = require('@notionhq/client');
 
 app.set('view engine', 'pug');
 app.use(express.json({ limit: '1mb' }));
@@ -54,5 +56,59 @@ app.post('/generate', async (req, res) => {
   res.setHeader('Content-Disposition', `attachment; filename="file.pdf"`);
   res.send(pdfBuffer);
 });
+
+/***********
+ * Notion
+ */
+const notion = new Client({ auth: process.env.NOTION_KEY });
+const databaseId = process.env.NOTION_DATABASE_ID;
+async function notionTest() {
+  // Add entry
+  try {
+    const response = await notion.pages.create({
+      parent: { database_id: databaseId },
+      properties: {
+        Name: {
+          title:[
+            {
+              "text": {
+                "content": "Todo2: stuff"
+              }
+            }
+          ]
+        },
+        Tags: {
+          multi_select: []
+        },
+        Remarks: {
+          rich_text: [
+            {
+              text: {
+                content: "Important remark2"
+              }
+            }
+          ]
+        },
+        Date: {
+          date: {
+            start: "2023-01-28"
+          }
+        },
+      },
+    });
+    console.log(response)
+  } catch (error) {
+    console.error(error.body)
+  }
+
+  // View entries
+  try {
+    const response = await notion.databases.query({ database_id: databaseId });
+    console.log(JSON.stringify(response.results[0].properties, null, 2))
+  } catch (error) {
+    console.error(error.body)
+  }
+}
+notionTest();
 
 app.listen(3000);
